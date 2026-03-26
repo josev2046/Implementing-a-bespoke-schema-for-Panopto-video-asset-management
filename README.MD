@@ -24,10 +24,6 @@ The Panopto video platform is optimised for lecture capture and internal communi
 
 This document sets out the options for implementing an IMDb-style metadata schema — with defined fields such as Director, Cast, Genre, and Release Year — against a Panopto video library. It covers what Panopto natively provides, three implementation approaches with their respective trade-offs, a recommended architecture, and a practical field schema.
 
-> **Key recommendation**
->
-> Use Panopto strictly as a video host and streaming layer. Build or extend an external system (CMS, database, or MAM) to own the metadata schema. Link records to Panopto via Session ID and embed the Panopto player in your custom interface. This is the only approach that delivers fully queryable, faceted, validated metadata.
-
 ---
 
 ## 2. Panopto's native metadata capabilities
