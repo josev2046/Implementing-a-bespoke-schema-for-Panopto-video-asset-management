@@ -1,13 +1,13 @@
 # Implementing a bespoke schema for Panopto video asset management
 
-**Document version:** 1.1  
+**Document version:** 1.2  
 **Date:** March 2026  
 
 ---
 
 ## Contents
 
-1. [About](#1-about)
+1. [Overview](#1-overview)
 2. [Panopto's Native Metadata Capabilities](#2-panoptos-native-metadata-capabilities)
 3. [Implementation Approaches](#3-implementation-approaches)
 4. [Recommended IMDb-Style Schema](#4-recommended-imdb-style-schema)
@@ -18,7 +18,7 @@
 
 ---
 
-## 1. About
+## 1. Overview
 
 The Panopto video platform is optimised for lecture capture and internal communications. Its native metadata model is intentionally minimal, offering only fixed fields such as Title, Description, Tags, Date, and Creator. It does not support bespoke schemas, custom fields, or structured relational metadata out of the box.
 
@@ -221,7 +221,7 @@ The Panopto REST API is the bridge between your metadata system and Panopto. The
 | `PUT /api/v1/sessions/{id}` | Update title, description, and tags from your metadata system |
 | `GET /api/v1/sessions?folderId={id}&searchQuery=tag:{value}` | List sessions in a folder, optionally filtered by a tag using the search engine |
 | `GET /api/v1/sessions/{id}/thumbnails` | Retrieve thumbnail for display in your custom portal |
-| `POST /api/v1/sessions/{id}/tags` | Add tags to a session (up to the 10-tag maximum) |
+| `POST /api/v1/sessions/{id}/tags` | Add tags to a session — note the 10-tag maximum per session (see [section 3.2](#32-approach-b--panopto-tags-as-a-structured-convention)) |
 | `GET /api/v1/folders` | Navigate the folder hierarchy |
 | Upload API (REST + S3 Protocol) | Programmatic upload from an ingest pipeline. This is a multi-step process: initiate the session via REST, transfer media files via the S3 API, then complete the upload with a final REST call. |
 
@@ -261,11 +261,11 @@ The recommended approach is to let your external system own the metadata. Panopt
 
 Panopto is an actively developed SaaS platform. API endpoints and authentication mechanisms may change. Pin integration code to a specific API version where the platform allows it, and monitor Panopto release notes for any expansion of custom metadata features, which could simplify this architecture over time.
 
-### 7.4 User experience
+### 7.4 User experience and access control
 
 Users accustomed to the Panopto interface will need onboarding to a new portal. Embedding the Panopto player seamlessly within your custom UI is essential to avoid a disjointed experience.
 
-Ensure the Panopto embed respects your organisation's access control model. Panopto's folder-level permissions should align with the visibility rules in your portal so that users cannot access content through the player that they cannot access through the catalogue.
+Ensure the Panopto embed respects your organisation's access control model. Panopto's folder-level permissions should align with the visibility rules in your portal so that users cannot access content through the player that they cannot access through the catalogue. In practice, this is enforced by using Panopto's session-based authentication tokens or signed embed URLs when initialising the player — your portal backend requests a scoped token on behalf of the authenticated user and passes it to the embedded player, ensuring Panopto's own permission layer remains the authoritative gatekeeper.
 
 ---
 
@@ -276,8 +276,8 @@ Ensure the Panopto embed respects your organisation's access control model. Pano
 - For any use case requiring faceted filtering, sorting, or structured reporting, **Approach C (external database + Panopto REST API) is the only viable long-term solution**.
 - The Panopto Session ID acts as the foreign key linking your metadata schema to video assets.
 - Schema design should include governance rules for controlled vocabularies and person entity deduplication.
-- Panopto is best treated as a streaming and player layer here — not as a metadata store.
+- Panopto is best treated as a streaming and player layer — not as a metadata store.
 
 ---
 
-*Jose Velazquez, MA — Document version 1.1 — March 2026*
+*Jose Velazquez, MA — Document version 1.2 — March 2026*
