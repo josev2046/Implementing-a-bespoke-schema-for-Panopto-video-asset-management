@@ -8,12 +8,12 @@
 ## Contents
 
 1. [Overview](#1-overview)
-2. [Panopto's Native Metadata Capabilities](#2-panoptos-native-metadata-capabilities)
-3. [Implementation Approaches](#3-implementation-approaches)
+2. [Panopto's native metadata capabilities](#2-panoptos-native-metadata-capabilities)
+3. [Implementation approaches](#3-implementation-approaches)
 4. [Recommended IMDb-Style Schema](#4-recommended-imdb-style-schema)
-5. [Panopto REST API — Key Integration Points](#5-panopto-rest-api--key-integration-points)
-6. [Approach Selection Guide](#6-approach-selection-guide)
-7. [Risks and Considerations](#7-risks-and-considerations)
+5. [Panopto REST API — key integration points](#5-panopto-rest-api--key-integration-points)
+6. [Approach selection guide](#6-approach-selection-guide)
+7. [Risks and considerations](#7-risks-and-considerations)
 8. [Summary](#8-summary)
 
 ---
