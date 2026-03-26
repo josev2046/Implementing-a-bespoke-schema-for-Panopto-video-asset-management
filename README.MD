@@ -1,13 +1,13 @@
-## Implementing a bespoke schema for Panopto video asset management
+# Implementing a bespoke schema for Panopto video asset management
 
-**Document version:** 1.0  
+**Document version:** 1.1  
 **Date:** March 2026  
 
 ---
 
 ## Contents
 
-1. [Executive Summary](#1-executive-summary)
+1. [About](#1-about)
 2. [Panopto's Native Metadata Capabilities](#2-panoptos-native-metadata-capabilities)
 3. [Implementation Approaches](#3-implementation-approaches)
 4. [Recommended IMDb-Style Schema](#4-recommended-imdb-style-schema)
@@ -38,7 +38,7 @@ Understanding what Panopto does and does not support is the essential starting p
 |---|---|
 | Title | Free text. No validation or controlled vocabulary. |
 | Description | Free text block. Indexed by Panopto search. Can hold structured text as a workaround. |
-| Tags | Flat keyword list. No hierarchy, no field-level categorisation. |
+| Tags | Flat keyword list. No hierarchy, no field-level categorisation. **Hard limit of 10 tags per video.** |
 | Date | Auto-set on upload. Editable, but no custom date types (e.g. Release Year vs Upload Date). |
 | Creator / Owner | Single user field. No multi-value cast or crew support. |
 | Folder | Hierarchical container. Can proxy for genre or category grouping, but is not a metadata field. |
@@ -92,7 +92,7 @@ Runtime: 180 min
 
 ### 3.2 Approach B — Panopto tags as a structured convention
 
-Panopto tags are searchable and partially filterable through the REST API. By imposing a namespaced tagging convention, tags can approximate a controlled vocabulary with minimal infrastructure.
+Panopto tags are searchable and filterable through the REST API. By imposing a namespaced tagging convention, tags can approximate a controlled vocabulary with minimal infrastructure.
 
 **Convention format**
 
@@ -103,21 +103,21 @@ year:2023
 cast:murphy-cillian
 ```
 
-Tags in this format are queryable via the Panopto REST API (e.g. `/api/v1/sessions?tag=director:nolan`), making them more actionable than free-text descriptions. The Panopto native UI does not surface filtered views by tag, but a lightweight integration layer can.
+> **Critical limitation:** Panopto enforces a strict, hardcoded limit of 10 tags per video. An IMDb-style schema with multi-value fields (e.g. multiple cast members) will almost always exceed this limit immediately.
 
 **Capabilities**
 
 | Capability | Approach B |
 |---|---|
 | Search by field value | ✓ Works via API and native search |
-| API filtering by tag | ✓ Supported |
+| API filtering by tag | ✓ Supported (via `searchQuery` parameter) |
 | Faceted UI filtering | ✓ Possible if you build a thin wrapper UI |
 | Sorting | ✗ Limited |
 | Field validation | ✗ Still relies on human discipline |
-| Multi-value fields | ✓ Multiple tags of the same type are straightforward |
+| Multi-value fields | ✗ Severely constrained by the 10-tag maximum |
 | Implementation effort | ~ Low to medium (requires a small API layer or wrapper UI) |
 
-**Verdict:** A pragmatic middle ground for teams that cannot build a full external system but need more than free-text search. Effective for collections up to a few hundred items with disciplined tagging governance.
+**Verdict:** Due to the 10-tag limit, this approach is not viable for a robust, multi-field schema like IMDb. It should only be used if you need to track 2–3 specific data points (e.g. just genre and year).
 
 ---
 
@@ -215,15 +215,15 @@ The following schema is proposed for a media catalogue implementation. Fields ar
 
 The Panopto REST API is the bridge between your metadata system and Panopto. The following endpoints are most relevant to this architecture.
 
-| Endpoint | Use Case |
+| Endpoint / API | Use Case |
 |---|---|
 | `GET /api/v1/sessions/{id}` | Retrieve session details including title, description, duration, and tags |
 | `PUT /api/v1/sessions/{id}` | Update title, description, and tags from your metadata system |
-| `GET /api/v1/sessions?parentFolderId=&tag=` | List sessions in a folder, optionally filtered by tag |
+| `GET /api/v1/sessions?folderId={id}&searchQuery=tag:{value}` | List sessions in a folder, optionally filtered by a tag using the search engine |
 | `GET /api/v1/sessions/{id}/thumbnails` | Retrieve thumbnail for display in your custom portal |
-| `POST /api/v1/sessions/{id}/tags` | Add tags to a session (used for the tagging-convention approach) |
+| `POST /api/v1/sessions/{id}/tags` | Add tags to a session (up to the 10-tag maximum) |
 | `GET /api/v1/folders` | Navigate the folder hierarchy |
-| `POST /api/v1/sessions/upload` | Programmatic upload from an ingest pipeline |
+| Upload API (REST + S3 Protocol) | Programmatic upload from an ingest pipeline. This is a multi-step process: initiate the session via REST, transfer media files via the S3 API, then complete the upload with a final REST call. |
 
 > **Authentication note**
 >
@@ -236,8 +236,8 @@ The Panopto REST API is the bridge between your metadata system and Panopto. The
 | Scenario | Recommended Approach | Rationale |
 |---|---|---|
 | Small collection (under 100 items), ad hoc search only | Approach A — Description convention | Low effort, good enough for informal use |
-| Medium collection, API access available, limited development resource | Approach B — Tag convention with thin API wrapper | Structured enough to filter programmatically without a full build |
-| Any collection requiring faceted filtering, reporting, or integration | Approach C — External DB and API | The only approach with true schema capability |
+| Very simple metadata needs (1–2 fields only) | Approach B — Tag convention with thin API wrapper | Structured enough to filter programmatically, provided you stay well under the 10-tag limit per video |
+| Any collection requiring an IMDb-style schema, reporting, or integration | Approach C — External DB and API | The only approach with true schema capability and no arbitrary limits on data fields |
 | Existing CMS or MAM already in use | Approach C via existing platform | Extend what you have; Panopto becomes the player |
 | Public-facing catalogue with SEO requirements | Approach C — custom portal | Panopto's native pages are not SEO-friendly |
 
@@ -276,8 +276,8 @@ Ensure the Panopto embed respects your organisation's access control model. Pano
 - For any use case requiring faceted filtering, sorting, or structured reporting, **Approach C (external database + Panopto REST API) is the only viable long-term solution**.
 - The Panopto Session ID acts as the foreign key linking your metadata schema to video assets.
 - Schema design should include governance rules for controlled vocabularies and person entity deduplication.
-- Panopto could be best treated as a streaming and player layer here — not as a metadata store.
+- Panopto is best treated as a streaming and player layer here — not as a metadata store.
 
 ---
 
-*Jose Velazquez, MA, Document version 1.0 — March 2026*
+*Jose Velazquez, MA — Document version 1.1 — March 2026*
