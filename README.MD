@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/1192616761.svg)](https://doi.org/10.5281/zenodo.19250734)
 
-**Document version:** 1.3  
+**Document version:** 1.4  
 **Date:** March 2026
 
 ---
@@ -22,7 +22,7 @@
 
 ## 1. Overview
 
-The Panopto video platform is optimised for lecture capture and internal communications. Its native metadata model is intentionally minimal, offering only fixed fields such as Title, Description, Tags, Date, and Creator. It does not support bespoke schemas, custom fields, or structured relational metadata out of the box.
+The Panopto video platform is optimised for lecturez capture and internal communications. Its native metadata model is intentionally minimal, offering only fixed fields such as Title, Description, Tags, Date, and Creator. It does not support bespoke schemas, custom fields, or structured relational metadata out of the box.
 
 This document sets out the options for implementing an IMDb-style metadata schema — with defined fields such as Director, Cast, Genre, and Release Year — against a Panopto video library. It covers what Panopto natively provides, three implementation approaches with their respective trade-offs, a recommended architecture, and a practical field schema.
 
@@ -200,7 +200,6 @@ The following schema is proposed for a media catalogue implementation. Fields ar
 |---|---|---|
 | panopto_session_id | UUID — required | Foreign key to Panopto. Never editable by end users. |
 | panopto_folder_id | UUID | For reference and sync |
-| upload_date | DateTime | Date ingested into Panopto |
 | metadata_created_by | User | Who created the metadata record |
 | metadata_last_updated | DateTime | Auto-updated on edit |
 | publish_status | Enum | Draft / Published / Archived |
@@ -213,29 +212,18 @@ The Panopto REST API is the bridge between your metadata system and Panopto. The
 
 | Endpoint / API | Use Case |
 |---|---|
-| `GET /api/v1/sessions/{id}` | Retrieve session details including title, description, duration, tags, and the `DownloadUrl` property for programmatic file retrieval. If `DownloadUrl` returns `#`, downloads have been disabled at the session, folder, or site level and must be enabled in session settings before programmatic download is possible. |
+| `GET /api/v1/sessions/{id}` | Retrieve session details including title, description, duration, and tags |
 | `PUT /api/v1/sessions/{id}` | Update title, description, and tags from your metadata system |
 | `GET /api/v1/sessions?folderId={id}&searchQuery=tag:{value}` | List sessions in a folder, optionally filtered by a tag using the search engine |
 | `GET /api/v1/sessions/{id}/thumbnails` | Retrieve thumbnail for display in your custom portal |
 | `POST /api/v1/sessions/{id}/tags` | Add tags to a session — note the 10-tag maximum per session (see section 3.2) |
 | `GET /api/v1/folders` | Navigate the folder hierarchy |
-| Upload API | Programmatic ingest from an external pipeline — see section 5.1 below |
 
-### 5.1 Programmatic upload (ingest pipeline)
-
-Uploading video files programmatically is a multi-step process and is more involved than a single API call. The sequence is:
-
-1. **Initiate the session** — `POST /api/v1/sessions` to create a session record and obtain a session ID and an S3-compatible upload target.
-2. **Transfer the media file** — upload the video file to the S3 endpoint returned in step 1. This uses standard S3 multipart upload semantics, not the Panopto REST API directly.
-3. **Complete the upload** — send a final REST call to signal that the file transfer is finished and trigger Panopto's transcoding pipeline.
-
-Failure to send the completion call leaves the session in a pending state. Build explicit error handling and retry logic around step 3. For large files, implement multipart chunking at the S3 layer and monitor transfer progress independently of the Panopto session status.
-
-### 5.2 Authentication
+### 5.1 Authentication
 
 Panopto's REST API uses OAuth 2.0. The correct client type depends on what the integration needs to access.
 
-**For server-side integrations that access non-public folders and sessions** (the typical case for a metadata pipeline or ingest workflow), use a **User-Based Server Application** client. This client type obtains a token using the `password` grant, with a dedicated service account's credentials:
+For server-side integrations that access non-public folders and sessions — the typical case for a metadata pipeline — use a **User-Based Server Application** client. This client type obtains a token using the `password` grant, with a dedicated service account's credentials:
 
 ```
 POST /Panopto/oauth2/connect/token
@@ -303,11 +291,12 @@ Ensure the Panopto embed respects your organisation's access control model. Pano
 - The Panopto Session ID can act as the foreign key linking your metadata schema to video assets.
 - Schema design should include governance rules for controlled vocabularies and person entity deduplication.
 - Server-side integrations must use a **User-Based Server Application** OAuth client with `grant_type=password`; a plain Server Application client will return 403 on protected content.
-- Programmatic video ingest requires a three-step sequence: initiate session, transfer via S3, complete upload.
 - A reconciliation strategy for orphaned metadata records (sessions deleted from Panopto) should be included in any production implementation.
 - Panopto is best treated here as a streaming and player layer — not as a metadata store.
 
 ---
 
-*Jose Velazquez, MA — Document version 1.3 — March 2026*
+*Jose Velazquez, MA — Document version 1.4 — March 2026*
+
+
 
