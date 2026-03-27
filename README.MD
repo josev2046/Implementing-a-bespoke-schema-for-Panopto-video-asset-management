@@ -267,12 +267,12 @@ Ensure the Panopto embed respects your organisation's access control model. Pano
 
 ## 8. Summary
 
-- Panopto does not natively support custom metadata schemas or bespoke fields.
-- Three implementation approaches exist, ranging from low-effort conventions to a full external database architecture.
-- For any use case requiring faceted filtering, sorting, or structured reporting, **Approach C (external database + Panopto REST API) is the only viable long-term solution**.
-- The Panopto Session ID acts as the foreign key linking your metadata schema to video assets.
+- Panopto does not natively support custom metadata schemas or bespoke fields at this time.
+- Multiple approaches exist, ranging from low-effort conventions to a full external database architecture.
+- For any use case requiring faceted filtering, sorting, or structured reporting, **Approach C (external database + Panopto REST API) is the most viable long-term solution**.
+- The Panopto Session ID can act as the foreign key linking your metadata schema to video assets.
 - Schema design should include governance rules for controlled vocabularies and person entity deduplication.
-- Panopto is best treated as a streaming and player layer — not as a metadata store.
+- Panopto is best treated here as a streaming and player layer — not as a metadata store.
 
 ---
 
