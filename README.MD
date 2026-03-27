@@ -1,5 +1,7 @@
 # Implementing a bespoke schema for Panopto video asset management
 
+[![DOI](https://zenodo.org/badge/1192616761.svg)](https://doi.org/10.5281/zenodo.19250734)
+
 **Document version:** 1.2  
 **Date:** March 2026  
 
