@@ -22,7 +22,7 @@
 
 ## 1. Overview
 
-The Panopto video platform is optimised for lecturez capture and internal communications. Its native metadata model is intentionally minimal, offering only fixed fields such as Title, Description, Tags, Date, and Creator. It does not support bespoke schemas, custom fields, or structured relational metadata out of the box.
+The Panopto video platform is optimised for lecture capture and internal communications. Its native metadata model is intentionally minimal, offering only fixed fields such as Title, Description, Tags, Date, and Creator. It does not support bespoke schemas, custom fields, or structured relational metadata out of the box.
 
 This document sets out the options for implementing an IMDb-style metadata schema — with defined fields such as Director, Cast, Genre, and Release Year — against a Panopto video library. It covers what Panopto natively provides, three implementation approaches with their respective trade-offs, a recommended architecture, and a practical field schema.
 
